@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Login - Multipass VM Manager</title>
+    <link rel="stylesheet" href="/static/css/login.css">
+  </head>
+  <body>
+    <div class="login-container">
+      <h1>Multipass VM Manager</h1>
+      <div class="subtitle">Sign in to continue</div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="username" autocomplete="username" required autofocus />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" autocomplete="current-password" required />
+        </div>
+        <button type="submit" class="btn">Sign In</button>
+      </form>
+      <div id="error"></div>
+      <div class="info">
+        Default credentials:<br/>
+        Username: <strong>admin</strong><br/>
+        Password: <strong>admin123</strong>
+      </div>
+    </div>
+
+    <script src="/static/js/login.js"></script>
+  </body>
+</html>

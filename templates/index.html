@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Multipass VM Manager</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <!-- Menu Bar -->
+    <div class="menubar">
+      <div class="menu">
+        <div class="menu-item" onclick="showCreateVMModal()">+ New VM</div>
+      </div>
+      <div class="user-info">
+        <span id="username">Loading...</span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+      <!-- Sidebar with VM List -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h2>Virtual Machines</h2>
+          <p style="font-size: 11px; color: #888;">Click VM to select, Connect to open terminal</p>
+        </div>
+        <div class="vm-list" id="vmList">
+          <div class="loading">Loading VMs...</div>
+        </div>
+      </div>
+
+      <!-- Main Area with Tabs -->
+      <div class="main">
+        <div class="tabs" id="tabs">
+          <!-- Tabs will be added dynamically -->
+        </div>
+        <div class="terminal-container" id="terminalContainer">
+          <div class="welcome">
+            <h2>Welcome to Multipass VM Manager</h2>
+            <p style="margin-top: 10px;">Select a VM and click "Connect" to open a terminal session</p>
+          </div>
+          <!-- Terminal panes will be added dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Create VM Modal -->
+    <div class="modal" id="createVMModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Create New VM</h2>
+          <span class="modal-close" onclick="hideCreateVMModal()">&times;</span>
+        </div>
+        <form id="createForm">
+          <div class="form-group">
+            <label>Name *</label>
+            <input type="text" id="vmName" placeholder="my-vm" required />
+          </div>
+          <div class="form-group">
+            <label>Ubuntu Version</label>
+            <select id="vmImage">
+              <option value="22.04">Ubuntu 22.04 LTS</option>
+              <option value="24.04">Ubuntu 24.04 LTS</option>
+              <option value="20.04">Ubuntu 20.04 LTS</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>CPUs</label>
+            <input type="number" id="vmCpus" value="2" min="1" max="8" />
+          </div>
+          <div class="form-group">
+            <label>Memory</label>
+            <input type="text" id="vmMemory" value="2G" placeholder="2G" />
+          </div>
+          <div class="form-group">
+            <label>Disk</label>
+            <input type="text" id="vmDisk" value="10G" placeholder="10G" />
+          </div>
+          <button type="submit" class="btn" style="width:100%">Create VM</button>
+        </form>
+        <div id="createStatus"></div>
+      </div>
+    </div>
+
+    <script src="/static/js/app.js" type="module"></script>
+  </body>
+</html>
