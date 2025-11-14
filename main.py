@@ -1,5 +1,6 @@
 """Main application entry point."""
 from typing import Optional
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -9,10 +10,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes import router
 from app.auth import check_auth
 from app.websocket import handle_terminal_connection
+from app.agents import agent_registry
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager."""
+    # Startup
+    await agent_registry.start_heartbeat_monitor()
+    yield
+    # Shutdown
+    await agent_registry.stop_heartbeat_monitor()
 
 
 # Create FastAPI application
-app = FastAPI(title="Multipass VM Manager")
+app = FastAPI(title="Multipass VM Manager", lifespan=lifespan)
 
 # Add CORS middleware
 app.add_middleware(

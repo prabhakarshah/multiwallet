@@ -2,3 +2,6 @@ fastapi
 uvicorn
 pydantic
 fastapi[standard]
+httpx
+python-multipart
+websockets

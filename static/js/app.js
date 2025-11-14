@@ -51,19 +51,22 @@ async function loadVMs() {
       const ip = vm.ipv4.length > 0 ? vm.ipv4[0] : 'No IP';
       const isRunning = vm.state === 'Running';
       const isSelected = selectedVM === vm.name;
+      const agent_id = vm.agent_id || null;
+      const agent_hostname = vm.agent_hostname || 'local';
+      const agent_display = agent_hostname !== 'local' ? `@ ${agent_hostname}` : '';
 
       return `
         <div class="vm-item ${isSelected ? 'selected' : ''}" onclick="selectVM('${vm.name}')">
-          <div class="vm-name">${vm.name}</div>
+          <div class="vm-name">${vm.name} <span style="color:#888;font-size:11px;">${agent_display}</span></div>
           <span class="vm-state ${vm.state.toLowerCase()}">${vm.state}</span>
           <div class="vm-ip">${ip}</div>
           <div class="vm-actions" onclick="event.stopPropagation()">
             ${isRunning ?
-              `<button class="btn btn-sm btn-success" onclick="connectToVM('${vm.name}')">Connect</button>
-               <button class="btn btn-sm btn-warning" onclick="stopVM('${vm.name}')">Stop</button>` :
-              `<button class="btn btn-sm" onclick="startVM('${vm.name}')">Start</button>`
+              `<button class="btn btn-sm btn-success" onclick="connectToVM('${vm.name}', '${agent_id}')">Connect</button>
+               <button class="btn btn-sm btn-warning" onclick="stopVM('${vm.name}', '${agent_id}')">Stop</button>` :
+              `<button class="btn btn-sm" onclick="startVM('${vm.name}', '${agent_id}')">Start</button>`
             }
-            <button class="btn btn-sm btn-danger" onclick="deleteVM('${vm.name}')">Delete</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteVM('${vm.name}', '${agent_id}')">Delete</button>
           </div>
         </div>
       `;
@@ -80,7 +83,7 @@ window.selectVM = function(vmName) {
 }
 
 // Connect to VM (create new tab/terminal)
-window.connectToVM = function(vmName) {
+window.connectToVM = function(vmName, agentId) {
   // Check if already open
   if (terminals[vmName]) {
     switchTab(vmName);
@@ -112,8 +115,12 @@ window.connectToVM = function(vmName) {
   term.open(pane);
   fit.fit();
 
-  // Connect WebSocket
-  const ws = new WebSocket(`ws://${location.host}/ws?vm_name=${vmName}`);
+  // Connect WebSocket with agent_id if provided
+  let wsUrl = `ws://${location.host}/ws?vm_name=${vmName}`;
+  if (agentId && agentId !== 'null') {
+    wsUrl += `&agent_id=${agentId}`;
+  }
+  const ws = new WebSocket(wsUrl);
   ws.binaryType = "arraybuffer";
 
   ws.onopen = () => {
@@ -185,12 +192,16 @@ window.closeTab = function(vmName, event) {
 }
 
 // VM Actions
-window.startVM = async function(name) {
+window.startVM = async function(name, agentId) {
   try {
+    const payload = { name };
+    if (agentId && agentId !== 'null') {
+      payload.agent_id = agentId;
+    }
     await fetch('/api/vm/start', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name})
+      body: JSON.stringify(payload)
     });
     setTimeout(loadVMs, 2000);
   } catch (err) {
@@ -198,13 +209,17 @@ window.startVM = async function(name) {
   }
 }
 
-window.stopVM = async function(name) {
+window.stopVM = async function(name, agentId) {
   if (!confirm(`Stop VM "${name}"?`)) return;
   try {
+    const payload = { name };
+    if (agentId && agentId !== 'null') {
+      payload.agent_id = agentId;
+    }
     await fetch('/api/vm/stop', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name})
+      body: JSON.stringify(payload)
     });
     loadVMs();
   } catch (err) {
@@ -212,13 +227,17 @@ window.stopVM = async function(name) {
   }
 }
 
-window.deleteVM = async function(name) {
+window.deleteVM = async function(name, agentId) {
   if (!confirm(`Delete VM "${name}"? This cannot be undone.`)) return;
   try {
+    const payload = { name };
+    if (agentId && agentId !== 'null') {
+      payload.agent_id = agentId;
+    }
     await fetch('/api/vm/delete', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name})
+      body: JSON.stringify(payload)
     });
     // Close tab if open
     if (terminals[name]) {
