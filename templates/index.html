@@ -2,101 +2,351 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Multipass VM Manager</title>
+    <title>Batwa - VM Manager</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <!-- Menu Bar -->
-    <div class="menubar">
-      <div class="menu">
-        <div class="menu-item" onclick="showCreateVMModal()">+ New VM</div>
-        <div class="menu-item" onclick="showAgentsModal()">View Agents</div>
-      </div>
-      <div class="user-info">
-        <span id="username">Loading...</span>
-        <button class="logout-btn" onclick="logout()">Logout</button>
-      </div>
-    </div>
-
-    <!-- Main Container -->
-    <div class="container">
-      <!-- Sidebar with VM List -->
-      <div class="sidebar">
-        <div class="sidebar-header">
-          <h2>Virtual Machines</h2>
-          <p style="font-size: 11px; color: #888;">Click VM to select, Connect to open terminal</p>
-        </div>
-        <div class="vm-list" id="vmList">
-          <div class="loading">Loading VMs...</div>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="6" fill="url(#gradient)"/>
+            <path d="M8 10h5v5H8z M19 10h5v5h-5z M8 17h5v5H8z M19 17h5v5h-5z" fill="white"/>
+            <defs>
+              <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                <stop offset="0%" stop-color="#667eea"/>
+                <stop offset="100%" stop-color="#764ba2"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span>Batwa</span>
         </div>
       </div>
 
-      <!-- Main Area with Tabs -->
-      <div class="main">
-        <div class="tabs" id="tabs">
-          <!-- Tabs will be added dynamically -->
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Overview</div>
+          <a href="#" class="nav-item active" onclick="showView('dashboard'); return false;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            Dashboard
+          </a>
+          <a href="#" class="nav-item" onclick="showView('vms'); return false;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            Virtual Machines
+            <span class="nav-badge" id="vmCount">0</span>
+          </a>
         </div>
-        <div class="terminal-container" id="terminalContainer">
-          <div class="welcome">
-            <h2>Welcome to Multipass VM Manager</h2>
-            <p style="margin-top: 10px;">Select a VM and click "Connect" to open a terminal session</p>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Management</div>
+          <a href="#" class="nav-item" onclick="showView('agents'); return false;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Agents
+            <span class="nav-badge" id="agentCount">0</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Actions</div>
+          <a href="#" class="nav-item" onclick="showCreateVMModal(); return false;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Create VM
+          </a>
+          <a href="#" class="nav-item" onclick="showAddAgentModal(); return false;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="8.5" cy="7" r="4"/>
+              <line x1="20" y1="8" x2="20" y2="14"/>
+              <line x1="23" y1="11" x2="17" y2="11"/>
+            </svg>
+            Add Agent
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">A</div>
+          <div class="user-details">
+            <div class="user-name" id="userName">Loading...</div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
           </div>
-          <!-- Terminal panes will be added dynamically -->
         </div>
       </div>
-    </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <h1 class="page-title" id="pageTitle">Dashboard</h1>
+          <p class="page-subtitle" id="pageSubtitle">Overview of your virtual machines</p>
+        </div>
+        <div class="header-right">
+          <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input type="text" placeholder="Search VMs..." id="searchInput">
+          </div>
+          <button class="icon-button" onclick="refreshData()" title="Refresh">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view active">
+          <!-- Stats Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="3" width="20" height="14" rx="2"/>
+                  <line x1="8" y1="21" x2="16" y2="21"/>
+                  <line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+              </div>
+              <div class="stat-details">
+                <div class="stat-value" id="totalVMs">0</div>
+                <div class="stat-label">Total VMs</div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon green">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div class="stat-details">
+                <div class="stat-value" id="runningVMs">0</div>
+                <div class="stat-label">Running</div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon purple">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                </svg>
+              </div>
+              <div class="stat-details">
+                <div class="stat-value" id="onlineAgents">0</div>
+                <div class="stat-label">Online Agents</div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon orange">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2"/>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+              </div>
+              <div class="stat-details">
+                <div class="stat-value" id="stoppedVMs">0</div>
+                <div class="stat-label">Stopped</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent VMs -->
+          <div class="section">
+            <div class="section-header">
+              <h2>Recent Virtual Machines</h2>
+              <a href="#" onclick="showView('vms'); return false;" class="link">View all →</a>
+            </div>
+            <div id="recentVMsGrid" class="vm-grid">
+              <div class="loading">Loading VMs...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VMs View -->
+        <div id="vmsView" class="view">
+          <div class="section">
+            <div class="section-header">
+              <h2>All Virtual Machines</h2>
+              <button class="btn-primary" onclick="showCreateVMModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Create VM
+              </button>
+            </div>
+            <div id="allVMsGrid" class="vm-grid">
+              <div class="loading">Loading VMs...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agents View -->
+        <div id="agentsView" class="view">
+          <div class="section">
+            <div class="section-header">
+              <h2>Connected Agents</h2>
+              <button class="btn-primary" onclick="showAddAgentModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add Agent
+              </button>
+            </div>
+            <div id="agentsGrid" class="agents-grid">
+              <div class="loading">Loading agents...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
 
     <!-- Create VM Modal -->
     <div class="modal" id="createVMModal">
-      <div class="modal-content">
+      <div class="modal-overlay" onclick="hideCreateVMModal()"></div>
+      <div class="modal-container">
         <div class="modal-header">
-          <h2>Create New VM</h2>
-          <span class="modal-close" onclick="hideCreateVMModal()">&times;</span>
+          <h3>Create New Virtual Machine</h3>
+          <button class="modal-close" onclick="hideCreateVMModal()">×</button>
         </div>
-        <form id="createForm">
-          <div class="form-group">
-            <label>Name *</label>
-            <input type="text" id="vmName" placeholder="my-vm" required />
+        <form id="createVMForm">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>VM Name *</label>
+              <input type="text" id="vmName" placeholder="my-ubuntu-vm" required>
+            </div>
+            <div class="form-group">
+              <label>Ubuntu Version</label>
+              <select id="vmImage">
+                <option value="22.04">Ubuntu 22.04 LTS</option>
+                <option value="24.04">Ubuntu 24.04 LTS</option>
+                <option value="20.04">Ubuntu 20.04 LTS</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>CPUs</label>
+              <input type="number" id="vmCpus" value="2" min="1" max="16">
+            </div>
+            <div class="form-group">
+              <label>Memory</label>
+              <input type="text" id="vmMemory" value="2G" placeholder="2G">
+            </div>
+            <div class="form-group">
+              <label>Disk</label>
+              <input type="text" id="vmDisk" value="10G" placeholder="10G">
+            </div>
+            <div class="form-group full">
+              <label>Target Agent</label>
+              <select id="vmAgent">
+                <option value="">Local Machine</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Ubuntu Version</label>
-            <select id="vmImage">
-              <option value="22.04">Ubuntu 22.04 LTS</option>
-              <option value="24.04">Ubuntu 24.04 LTS</option>
-              <option value="20.04">Ubuntu 20.04 LTS</option>
-            </select>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="hideCreateVMModal()">Cancel</button>
+            <button type="submit" class="btn-primary">Create VM</button>
           </div>
-          <div class="form-group">
-            <label>CPUs</label>
-            <input type="number" id="vmCpus" value="2" min="1" max="8" />
-          </div>
-          <div class="form-group">
-            <label>Memory</label>
-            <input type="text" id="vmMemory" value="2G" placeholder="2G" />
-          </div>
-          <div class="form-group">
-            <label>Disk</label>
-            <input type="text" id="vmDisk" value="10G" placeholder="10G" />
-          </div>
-          <button type="submit" class="btn" style="width:100%">Create VM</button>
         </form>
-        <div id="createStatus"></div>
+        <div id="createVMStatus"></div>
       </div>
     </div>
 
-    <!-- Agents Modal -->
-    <div class="modal" id="agentsModal">
-      <div class="modal-content modal-wide">
+    <!-- Add Agent Modal -->
+    <div class="modal" id="addAgentModal">
+      <div class="modal-overlay" onclick="hideAddAgentModal()"></div>
+      <div class="modal-container">
         <div class="modal-header">
-          <h2>Connected Agents</h2>
-          <span class="modal-close" onclick="hideAgentsModal()">&times;</span>
+          <h3>Add Remote Agent</h3>
+          <button class="modal-close" onclick="hideAddAgentModal()">×</button>
         </div>
-        <div id="agentsList">
-          <div class="loading">Loading agents...</div>
+        <div class="modal-body">
+          <p class="help-text">To add a remote agent, run the following command on the remote machine:</p>
+          <div class="code-block">
+            <code>./batwa-agent --agent-id=my-agent --master-url=http://&lt;this-server&gt;:8000</code>
+            <button class="copy-btn" onclick="copyAgentCommand()">Copy</button>
+          </div>
+          <div class="info-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <div>
+              <strong>Note:</strong> The agent will automatically register with this server once it starts. Make sure the agent can reach this server on port 8000.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-primary" onclick="hideAddAgentModal()">Close</button>
         </div>
       </div>
     </div>
 
-    <script src="/static/js/app.js?v=2" type="module"></script>
+    <!-- VM Details Modal -->
+    <div class="modal" id="vmDetailsModal">
+      <div class="modal-overlay" onclick="hideVMDetailsModal()"></div>
+      <div class="modal-container large">
+        <div class="modal-header">
+          <h3 id="vmDetailsTitle">VM Details</h3>
+          <button class="modal-close" onclick="hideVMDetailsModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <div id="vmDetailsContent">
+            <div class="loading">Loading...</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="hideVMDetailsModal()">Close</button>
+          <button class="btn-primary" id="vmDetailsConnectBtn" onclick="connectFromDetails()">Connect</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal Modal -->
+    <div class="modal" id="terminalModal">
+      <div class="modal-overlay" onclick="hideTerminalModal()"></div>
+      <div class="modal-container fullscreen">
+        <div class="modal-header">
+          <h3 id="terminalTitle">Terminal</h3>
+          <button class="modal-close" onclick="hideTerminalModal()">×</button>
+        </div>
+        <div class="modal-body no-padding">
+          <div id="terminalContainer"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/app.js?v=4" type="module"></script>
   </body>
 </html>
