@@ -117,6 +117,11 @@ func (r *AgentRegistry) GetAgentAPIKey(agentID string) *string {
 
 // UpdateHeartbeat updates agent heartbeat
 func (r *AgentRegistry) UpdateHeartbeat(heartbeat models.AgentHeartbeat) {
+	r.UpdateHeartbeatWithIP(heartbeat, "")
+}
+
+// UpdateHeartbeatWithIP updates agent heartbeat with client IP for auto-registration
+func (r *AgentRegistry) UpdateHeartbeatWithIP(heartbeat models.AgentHeartbeat, clientIP string) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -125,6 +130,26 @@ func (r *AgentRegistry) UpdateHeartbeat(heartbeat models.AgentHeartbeat) {
 		agent.Status = heartbeat.Status
 		agent.VMCount = heartbeat.VMCount
 		log.Printf("Heartbeat updated for agent: %s", heartbeat.AgentID)
+	} else {
+		// Auto-register agent if it doesn't exist
+		log.Printf("Auto-registering agent from heartbeat: %s (IP: %s)", heartbeat.AgentID, clientIP)
+
+		// Construct API URL from client IP
+		apiURL := ""
+		if clientIP != "" {
+			// Default agent port is 8001
+			apiURL = "http://" + clientIP + ":8001"
+		}
+
+		agentInfo := &models.AgentInfo{
+			AgentID:  heartbeat.AgentID,
+			Hostname: heartbeat.AgentID, // Use AgentID as hostname for now
+			APIURL:   apiURL,
+			Status:   heartbeat.Status,
+			LastSeen: &heartbeat.Timestamp,
+			VMCount:  heartbeat.VMCount,
+		}
+		r.agents[heartbeat.AgentID] = agentInfo
 	}
 }
 

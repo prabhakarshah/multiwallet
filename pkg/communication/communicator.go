@@ -135,10 +135,12 @@ func (c *AgentCommunicator) GetVMList(agentID string) (map[string]interface{}, e
 	}
 
 	url := fmt.Sprintf("%s/api/vm/list", agent.APIURL)
+	log.Printf("Fetching VM list from agent %s at %s", agentID, url)
 	headers := c.getHeaders(agentID)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		log.Printf("Failed to create request for agent %s: %v", agentID, err)
 		return nil, err
 	}
 
@@ -148,15 +150,18 @@ func (c *AgentCommunicator) GetVMList(agentID string) (map[string]interface{}, e
 
 	resp, err := c.client.Do(req)
 	if err != nil {
+		log.Printf("Failed to connect to agent %s: %v", agentID, err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		log.Printf("Failed to decode response from agent %s: %v", agentID, err)
 		return nil, err
 	}
 
+	log.Printf("Successfully fetched VM list from agent %s", agentID)
 	return result, nil
 }
 

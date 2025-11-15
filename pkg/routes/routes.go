@@ -3,8 +3,8 @@ package routes
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,7 +12,6 @@ import (
 	"github.com/prashah/batwa/pkg/auth"
 	"github.com/prashah/batwa/pkg/executor"
 	"github.com/prashah/batwa/pkg/models"
-	"github.com/prashah/batwa/pkg/multipass"
 )
 
 // generateSessionID generates a random session ID
@@ -190,7 +189,10 @@ func AgentHeartbeat(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
-	agents.GlobalRegistry.UpdateHeartbeat(heartbeat)
+	// Get client IP for auto-registration
+	clientIP := c.IP()
+
+	agents.GlobalRegistry.UpdateHeartbeatWithIP(heartbeat, clientIP)
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Heartbeat received",
@@ -329,27 +331,36 @@ func GetVMInfo(c *fiber.Ctx) error {
 	}
 
 	vmName := c.Params("vm_name")
-	result := multipass.RunMultipassCommand([]string{"info", vmName, "--format", "json"})
+	agentID := c.Query("agent_id")
 
-	if result.Success {
-		var data map[string]interface{}
-		if err := json.Unmarshal([]byte(result.Output), &data); err != nil {
-			return c.Status(500).JSON(fiber.Map{"detail": "Failed to parse multipass output"})
-		}
-
-		if info, ok := data["info"].(map[string]interface{}); ok {
-			if vmInfo, ok := info[vmName]; ok {
-				return c.JSON(fiber.Map{
-					"success": true,
-					"info":    vmInfo,
-				})
-			}
-		}
-
-		return c.Status(404).JSON(fiber.Map{"detail": fmt.Sprintf("VM '%s' not found", vmName)})
+	// Create executor based on agent_id
+	var vmExecutor executor.VMExecutor
+	if agentID != "" {
+		log.Printf("Getting VM info for %s from agent %s", vmName, agentID)
+		vmExecutor = executor.GlobalExecutorFactory.GetExecutor(&agentID)
+	} else {
+		log.Printf("Getting local VM info for %s", vmName)
+		vmExecutor = executor.GlobalExecutorFactory.GetExecutor(nil)
 	}
 
-	return c.Status(500).JSON(fiber.Map{"detail": result.Error})
+	result, err := vmExecutor.GetVMInfo(vmName)
+	if err != nil {
+		log.Printf("Error getting VM info for %s: %v", vmName, err)
+		return c.Status(500).JSON(fiber.Map{"detail": err.Error()})
+	}
+
+	if success, ok := result["success"].(bool); ok && success {
+		if data, ok := result["data"].(map[string]interface{}); ok {
+			if info, ok := data["info"].(map[string]interface{}); ok {
+				if vmInfo, ok := info[vmName]; ok {
+					return c.JSON(vmInfo)
+				}
+			}
+		}
+	}
+
+	// If the structure doesn't match, return the result as is
+	return c.JSON(result)
 }
 
 // StartVM starts a stopped VM

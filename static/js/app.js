@@ -345,20 +345,51 @@ window.showVMDetailsModal = async function(vmName, agentId) {
     }
 
     const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
     const vm = await res.json();
 
     const ip = vm.ipv4 && vm.ipv4.length > 0 ? vm.ipv4.join(', ') : 'No IP';
-    const isRunning = vm.state === 'Running';
+    const state = vm.state || 'Unknown';
+    const isRunning = state === 'Running';
+
+    // Helper function to format bytes to human readable
+    const formatBytes = (bytes) => {
+      if (!bytes) return 'N/A';
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+    };
+
+    // Helper function to extract value from object or string
+    const getValue = (field) => {
+      if (!field) return 'N/A';
+      if (typeof field === 'string') return field;
+      if (typeof field === 'number') return field.toString();
+      if (typeof field === 'object') {
+        // Handle multipass object format
+        if (field.total !== undefined) return formatBytes(field.total);
+        if (field.used !== undefined) return formatBytes(field.used);
+        // If it's an object we don't understand, try to stringify it nicely
+        return JSON.stringify(field);
+      }
+      return 'N/A';
+    };
+
+    const cpus = getValue(vm.cpus);
+    const memory = getValue(vm.memory);
+    const disk = getValue(vm.disk);
 
     document.getElementById('vmDetailsContent').innerHTML = `
       <div class="vm-details-grid">
         <div class="detail-item">
           <span class="detail-label">Name</span>
-          <span class="detail-value">${vm.name}</span>
+          <span class="detail-value">${vm.name || 'N/A'}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">State</span>
-          <span class="detail-value"><span class="vm-status ${vm.state.toLowerCase()}">${vm.state}</span></span>
+          <span class="detail-value"><span class="vm-status ${state.toLowerCase()}">${state}</span></span>
         </div>
         <div class="detail-item">
           <span class="detail-label">IP Address</span>
@@ -366,19 +397,19 @@ window.showVMDetailsModal = async function(vmName, agentId) {
         </div>
         <div class="detail-item">
           <span class="detail-label">Image</span>
-          <span class="detail-value">${vm.image || 'N/A'}</span>
+          <span class="detail-value">${vm.image || vm.release || 'N/A'}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">CPUs</span>
-          <span class="detail-value">${vm.cpus || 'N/A'}</span>
+          <span class="detail-value">${cpus}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Memory</span>
-          <span class="detail-value">${vm.memory || 'N/A'}</span>
+          <span class="detail-value">${memory}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Disk</span>
-          <span class="detail-value">${vm.disk || 'N/A'}</span>
+          <span class="detail-value">${disk}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Location</span>
