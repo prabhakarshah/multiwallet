@@ -13,6 +13,8 @@ let allAgents = [];
 let currentView = 'dashboard';
 let currentTerminal = null;
 let currentVMDetails = null;
+let terminalTabs = [];
+let activeTerminalTab = null;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
@@ -119,7 +121,8 @@ window.showView = function(viewName) {
   const titles = {
     dashboard: { title: 'Dashboard', subtitle: 'Overview of your virtual machines' },
     vms: { title: 'Virtual Machines', subtitle: 'Manage all your VMs' },
-    agents: { title: 'Agents', subtitle: 'Connected remote agents' }
+    agents: { title: 'Agents', subtitle: 'Connected remote agents' },
+    terminals: { title: 'Terminals', subtitle: 'Multi-tab terminal sessions' }
   };
 
   document.getElementById('pageTitle').textContent = titles[viewName].title;
@@ -134,6 +137,8 @@ window.showView = function(viewName) {
     renderAllVMs();
   } else if (viewName === 'agents') {
     renderAgents();
+  } else if (viewName === 'terminals') {
+    renderTerminals();
   }
 }
 
