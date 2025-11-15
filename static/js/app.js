@@ -76,6 +76,50 @@ async function loadVMs() {
   }
 }
 
+// Load Agents
+async function loadAgents() {
+  const agentsList = document.getElementById('agentsList');
+
+  try {
+    const res = await fetch('/api/agent/list');
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch agents: ${res.status}`);
+    }
+
+    const agents = await res.json();
+
+    if (agents.length === 0) {
+      agentsList.innerHTML = '<div class="no-agents">No agents connected.<br/><br/>Agents allow you to manage VMs on remote machines.<br/>Check the documentation for setup instructions.</div>';
+      return;
+    }
+
+    agentsList.innerHTML = agents.map(agent => {
+      const lastSeen = agent.last_seen ? new Date(agent.last_seen).toLocaleString() : 'Never';
+      const statusClass = agent.status === 'online' ? 'online' : 'offline';
+
+      return `
+        <div class="agent-item">
+          <div class="agent-info">
+            <div class="agent-id">${agent.agent_id}</div>
+            <div class="agent-hostname">Hostname: ${agent.hostname}</div>
+            <div class="agent-url">${agent.api_url}</div>
+            <div style="font-size: 10px; color: #666; margin-top: 5px;">Last seen: ${lastSeen}</div>
+          </div>
+          <div class="agent-meta">
+            <div class="agent-vm-count">
+              VMs: <strong>${agent.vm_count || 0}</strong>
+            </div>
+            <span class="agent-status ${statusClass}">${agent.status}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    agentsList.innerHTML = `<div style="color:#e74c3c;font-size:12px;padding:15px;text-align:center;">Error loading agents: ${err.message}</div>`;
+  }
+}
+
 // Select VM
 window.selectVM = function(vmName) {
   selectedVM = vmName;
@@ -256,6 +300,15 @@ window.showCreateVMModal = function() {
 
 window.hideCreateVMModal = function() {
   document.getElementById('createVMModal').classList.remove('active');
+}
+
+window.showAgentsModal = async function() {
+  document.getElementById('agentsModal').classList.add('active');
+  await loadAgents();
+}
+
+window.hideAgentsModal = function() {
+  document.getElementById('agentsModal').classList.remove('active');
 }
 
 // Create VM form

@@ -339,3 +339,88 @@ body {
   font-size: 12px;
   margin-top: 10px;
 }
+
+/* Agent list modal */
+.modal-wide {
+  max-width: 800px;
+}
+
+.agent-item {
+  background: #333;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.agent-item:hover {
+  border-color: #4a9eff;
+  background: #3a3a3a;
+}
+
+.agent-info {
+  flex: 1;
+}
+
+.agent-id {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #4a9eff;
+}
+
+.agent-hostname {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 3px;
+}
+
+.agent-url {
+  font-size: 11px;
+  color: #888;
+  font-family: monospace;
+}
+
+.agent-meta {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.agent-status {
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.agent-status.online {
+  background: #27ae60;
+  color: white;
+}
+
+.agent-status.offline {
+  background: #95a5a6;
+  color: white;
+}
+
+.agent-vm-count {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.agent-vm-count strong {
+  color: #4a9eff;
+  font-size: 14px;
+}
+
+.no-agents {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+  font-size: 13px;
+}

@@ -75,7 +75,7 @@ async def handle_remote_terminal(ws: WebSocket, vm_name: str, agent_id: str):
 
             remote_ws = await websockets.connect(
                 agent_ws_url,
-                extra_headers=headers if headers else None
+                additional_headers=headers if headers else None
             )
 
             # Create bidirectional proxy

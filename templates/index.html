@@ -10,6 +10,7 @@
     <div class="menubar">
       <div class="menu">
         <div class="menu-item" onclick="showCreateVMModal()">+ New VM</div>
+        <div class="menu-item" onclick="showAgentsModal()">View Agents</div>
       </div>
       <div class="user-info">
         <span id="username">Loading...</span>
@@ -83,6 +84,19 @@
       </div>
     </div>
 
-    <script src="/static/js/app.js" type="module"></script>
+    <!-- Agents Modal -->
+    <div class="modal" id="agentsModal">
+      <div class="modal-content modal-wide">
+        <div class="modal-header">
+          <h2>Connected Agents</h2>
+          <span class="modal-close" onclick="hideAgentsModal()">&times;</span>
+        </div>
+        <div id="agentsList">
+          <div class="loading">Loading agents...</div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/app.js?v=2" type="module"></script>
   </body>
 </html>
